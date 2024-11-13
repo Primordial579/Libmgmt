@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Registration Form</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <style>
+        /* Your CSS styling */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Registration Form</h2>
+        <form id="registrationForm" onsubmit="submitForm(event)">
+            <label for="participant1">Participant 1</label>
+            <input type="text" id="participant1" name="participant1" placeholder="Enter your full name" required>
+            
+            <label for="participant2">Participant 2</label>
+            <input type="text" id="participant2" name="participant2" placeholder="Enter your full name" required>
+            
+            <label for="usn">USN</label>
+            <input type="text" id="usn" name="usn" placeholder="Enter your USN" required>
+            
+            <label for="phone">Phone number</label>
+            <input type="text" id="phone" name="phone" placeholder="Enter your Phone number" required>
+            
+            <input type="submit" value="Register">
+        </form>
+    </div>
+
+    <script>
+        // Replace this URL with the one provided in your Google Apps Script deployment
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbykTxGKyETDWfy1l_V6aZLr77TdXdDSEQ7P2Agr0FUC-u9titws_zewuLHxLw7D059jmw/exec';
+
+        async function submitForm(event) {
+            event.preventDefault(); // Prevents the default form submission
+
+            // Capture form data
+            const formData = new FormData(document.getElementById('registrationForm'));
+
+            try {
+                // Send the form data to the Google Apps Script Web App URL
+                const response = await fetch(scriptURL, { method: 'POST', body: formData });
+                if (response.ok) {
+                    alert('Registration successful!');
+                    document.getElementById('registrationForm').reset();
+                } else {
+                    alert('Registration failed. Please try again.');
+                }
+            } catch (error) {
+                alert('Error submitting form. Check your internet connection and try again.');
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
