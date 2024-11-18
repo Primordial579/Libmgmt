@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Register Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding-top: 50px;
+        }
+        input, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        img {
+            width: 50px;
+            height: auto;
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .file-input-wrapper {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .custom-file-upload {
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .search-bar {
+            width: 50%;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="login-register">
+        <h2>Login / Register</h2>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="login()">Login</button>
+        <button onclick="register()">Register</button>
+        <p id="message" style="color: red;"></p>
+    </div>
+
+    <div class="container" id="dashboard" style="display: none;">
+        <h2>Dashboard</h2>
+        <input type="text" id="search-bar" class="search-bar" placeholder="Search by name..." oninput="filterTable()">
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button onclick="addRow()">Add New Row</button>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        let token = null;
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const res = await fetch(`${API_BASE_URL}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                token = data.token;
+                loadDashboard();
+            } else {
+                document.getElementById('message').innerText = data.message;
+            }
+        }
+
+        async function register() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const res = await fetch(`${API_BASE_URL}/api/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById('message').innerText = 'Registered successfully!';
+            } else {
+                document.getElementById('message').innerText = data.message;
+            }
+        }
+
+        async function loadDashboard() {
+            document.getElementById('login-register').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+
+            const res = await fetch(`${API_BASE_URL}/api/getTableData`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td contenteditable="true" onblur="editName(${row.id}, this.innerText)">${row.name}</td>
+                    <td>
+                        <img src="${API_BASE_URL}${row.img}" alt="Image" onclick="viewImage('${API_BASE_URL}${row.img}')">
+                        <div class="file-input-wrapper">
+                            <label class="custom-file-upload">
+                                <input type="file" accept="image/*" onchange="editImage(${row.id}, this.files[0])">Choose File
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <button onclick="deleteRow(${row.id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function viewImage(imageUrl) {
+            window.open(imageUrl, '_blank');
+        }
+
+        async function editName(id, name) {
+            await fetch(`${API_BASE_URL}/api/editName/${id}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}` 
+                },
+                body: JSON.stringify({ name })
+            });
+        }
+
+        async function editImage(id, file) {
+            const formData = new FormData();
+            formData.append('img', file);
+
+            await fetch(`${API_BASE_URL}/api/editImage/${id}`, {
+                method: 'PUT',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+            loadDashboard();
+        }
+
+        async function deleteRow(id) {
+            await fetch(`${API_BASE_URL}/api/deleteRow/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            loadDashboard();
+        }
+
+        function filterTable() {
+            const searchValue = document.getElementById('search-bar').value.toLowerCase();
+            const rows = document.querySelectorAll('#data-table tbody tr');
+
+            rows.forEach(row => {
+                const name = row.cells[0].innerText.toLowerCase();
+                row.style.display = name.includes(searchValue) ? '' : 'none';
+            });
+        }
+
+        async function addRow() {
+            const name = prompt('Enter name:');
+            if (!name) return alert('Name cannot be empty.');
+
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+
+            fileInput.addEventListener('change', async () => {
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('No file selected.');
+                    document.body.removeChild(fileInput);
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('img', file);
+
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/addRow`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    if (res.ok) {
+                        alert('Row added successfully!');
+                        loadDashboard();
+                    } else {
+                        const error = await res.json();
+                        alert(`Error: ${error.message}`);
+                    }
+                } catch (err) {
+                    console.error('Error adding row:', err);
+                } finally {
+                    document.body.removeChild(fileInput);
+                }
+            });
+
+            fileInput.click();
+        }
+    </script>
+</body>
+</html>
