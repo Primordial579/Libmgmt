@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Habit & To-Do Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Google Font - Dancing Script */
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap');
+    
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Dancing Script', cursive; /* Set the font to Dancing Script */
+      background-color: #9d91ff; /* Set background color to #9d91ff */
+      display: flex;
+      min-height: 100vh;
+      color: #333; /* Default text color */
+      font-size: 1.25rem; /* Increase base text size by 4 (1rem = 16px, 1.25rem = 20px) */
+    }
+
+    .sidebar {
+      width: 200px;
+      background: #333;
+      color: #fff;
+      padding-top: 1rem;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      padding: 1rem;
+      border-bottom: 1px solid #444;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+      background: #444;
+    }
+
+    .main {
+      flex: 1;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 2.5rem; /* Increase header size */
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-bottom: 2rem;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.75rem;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .delete-btn, .remove-todo {
+      background-color: #e74c3c;
+      color: #fff;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+    }
+
+    form {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    input[type="text"] {
+      padding: 0.5rem;
+      flex: 1;
+      font-size: 1.25rem; /* Larger text input */
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1.25rem; /* Larger button text */
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #fff;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dashboard-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .dashboard-header img {
+      width: 80px;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .notification {
+      background-color: #f39c12;
+      color: white;
+      padding: 10px;
+      margin-bottom: 20px;
+      display: none;
+      border-radius: 5px;
+    }
+
+    .streak {
+      font-size: 1.5rem; /* Increased font size for streak counter */
+      font-weight: bold;
+      color: yellow; /* Set color to yellow */
+    }
+
+    .quote {
+      font-size: 1.5rem; /* Increased font size for quotes */
+      font-style: italic;
+      color: yellow; /* Set color to yellow */
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>KIVRA</h2>
+    <a href="#" class="nav-link active" data-page="dashboard">Dashboard</a>
+    <a href="#" class="nav-link" data-page="habit">Habit Tracker</a>
+    <a href="#" class="nav-link" data-page="todo">To-Do List</a>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <!-- Dashboard -->
+    <div id="dashboard" class="page">
+      <div class="dashboard-header">
+        <h1>Hey, User!</h1>
+        <img src="https://img.freepik.com/free-vector/cute-happy-penguin-cartoon-icon-illustration-animal-nature-icon-concept-isolated-flat-cartoon-style_138676-2095.jpg?ga=GA1.1.1047722226.1747383705&semt=ais_hybrid&w=740">
+      </div>
+
+      <!-- Streak Counter -->
+      <div class="streak">
+        <h2>Streak: <span id="streak-count">0</span> Days</h2>
+      </div>
+
+      <!-- Notification -->
+      <div id="notification" class="notification">
+        You have completed your habit for the day! Keep going!
+      </div>
+
+      <!-- Motivational Quote -->
+      <div id="quote" class="quote"></div>
+    </div>
+
+    <!-- Habit Tracker -->
+    <div id="habit" class="page" style="display: none;">
+      <h1>Habit Tracker</h1>
+      <form id="habit-form">
+        <input type="text" id="habit-input" placeholder="New habit" required />
+        <button type="submit">Add Habit</button>
+      </form>
+      <table id="habit-table">
+        <thead>
+          <tr>
+            <th>Habit</th>
+            <th>Mon</th>
+            <th>Tue</th>
+            <th>Wed</th>
+            <th>Thu</th>
+            <th>Fri</th>
+            <th>Sat</th>
+            <th>Sun</th>
+            <th>Chart</th>
+            <th>Edit</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- To-Do List -->
+    <div id="todo" class="page" style="display: none;">
+      <h1>To-Do List</h1>
+      <form id="todo-form">
+        <input type="text" id="todo-input" placeholder="New task" required />
+        <button type="submit">Add Task</button>
+      </form>
+      <ul id="todo-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Navigation
+    const links = document.querySelectorAll('.nav-link');
+    const pages = document.querySelectorAll('.page');
+
+    links.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        pages.forEach(p => p.style.display = 'none');
+        document.getElementById(link.dataset.page).style.display = 'block';
+      });
+    });
+
+    // Habit Tracker
+    const habitForm = document.getElementById('habit-form');
+    const habitInput = document.getElementById('habit-input');
+    const habitTableBody = document.querySelector('#habit-table tbody');
+    let habits = JSON.parse(localStorage.getItem('habits')) || [];
+
+    function saveHabits() {
+      localStorage.setItem('habits', JSON.stringify(habits));
+    }
+
+    function renderHabits() {
+      habitTableBody.innerHTML = '';
+
+      habits.forEach((habit, index) => {
+        const row = document.createElement('tr');
+
+        // Habit name
+        const nameCell = document.createElement('td');
+        nameCell.textContent = habit.name;
+        row.appendChild(nameCell);
+
+        // 7 checkboxes for days
+        for (let i = 0; i < 7; i++) {
+          const checkCell = document.createElement('td');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = habit.days[i];
+          checkbox.addEventListener('change', () => {
+            habit.days[i] = checkbox.checked;
+            saveHabits();
+            updateStreak();
+            renderHabits();
+          });
+          checkCell.appendChild(checkbox);
+          row.appendChild(checkCell);
+        }
+
+        // Pie chart
+        const chartCell = document.createElement('td');
+        const canvas = document.createElement('canvas');
+        canvas.width = 80;
+        canvas.height = 80;
+        chartCell.appendChild(canvas);
+        row.appendChild(chartCell);
+
+        const ctx = canvas.getContext('2d');
+        const completed = habit.days.filter(Boolean).length;
+        new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: ['Completed', 'Remaining'],
+            datasets: [{
+              data: [completed, 7 - completed],
+              backgroundColor: ['#4caf50', '#ddd'],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: ctx => `${ctx.label}: ${ctx.raw} day(s)`
+                }
+              }
+            }
+          }
+        });
+
+        // Edit button
+        const editCell = document.createElement('td');
+        const editBtn = document.createElement('button');
+        editBtn.textContent = '✏️';
+        editBtn.addEventListener('click', () => {
+          const newName = prompt('Rename this habit:', habit.name);
+          if (newName) {
+            habit.name = newName.trim();
+            saveHabits();
+            renderHabits();
+          }
+        });
+        editCell.appendChild(editBtn);
+        row.appendChild(editCell);
+
+        // Delete button
+        const deleteCell = document.createElement('td');
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'X';
+        delBtn.className = 'delete-btn';
+        delBtn.addEventListener('click', () => {
+          habits.splice(index, 1);
+          saveHabits();
+          renderHabits();
+        });
+        deleteCell.appendChild(delBtn);
+        row.appendChild(deleteCell);
+
+        habitTableBody.appendChild(row);
+      });
+    }
+
+    habitForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = habitInput.value.trim();
+      if (name) {
+        habits.push({ name, days: [false, false, false, false, false, false, false] });
+        saveHabits();
+        renderHabits();
+        habitInput.value = '';
+      }
+    });
+
+    renderHabits();
+
+    // To-Do List
+    const todoForm = document.getElementById('todo-form');
+    const todoInput = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
+    let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+    function saveTodos() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
+    function renderTodos() {
+      todoList.innerHTML = '';
+      todos.forEach((todo, index) => {
+        const li = document.createElement('li');
+        
+        // Create checkbox
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = todo.completed || false;
+        checkbox.addEventListener('change', () => {
+          todo.completed = checkbox.checked;
+          saveTodos();
+        });
+        
+        // Add checkbox to li
+        li.appendChild(checkbox);
+        
+        // Add task text
+        const taskText = document.createElement('span');
+        taskText.textContent = todo.text;
+        li.appendChild(taskText);
+        
+        // Add remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'X';
+        removeBtn.className = 'remove-todo';
+        removeBtn.addEventListener('click', () => {
+          todos.splice(index, 1);
+          saveTodos();
+          renderTodos();
+        });
+        li.appendChild(removeBtn);
+        
+        todoList.appendChild(li);
+      });
+    }
+
+    todoForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const task = todoInput.value.trim();
+      if (task) {
+        todos.push({ text: task, completed: false });
+        saveTodos();
+        renderTodos();
+        todoInput.value = '';
+      }
+    });
+
+    renderTodos();
+
+    // Streak Functionality
+    function updateStreak() {
+      const currentDate = new Date();
+      let streak = 0;
+      habits.forEach(habit => {
+        const completedDays = habit.days.filter(Boolean).length;
+        if (completedDays === 7) {
+          streak++;
+        }
+      });
+      document.getElementById('streak-count').textContent = streak;
+      if (streak > 0) {
+        showNotification('Keep it up!');
+      }
+    }
+
+    // Notification Display
+    function showNotification(message) {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.style.display = 'block';
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 3000);
+    }
+
+    // Motivational Quotes
+    const quotes = [
+      "Believe you can and you're halfway there.",
+      "Success is the sum of small efforts, repeated day in and day out.",
+      "The future depends on what we do in the present.",
+      "The only way to do great work is to love what you do."
+    ];
+
+    function displayRandomQuote() {
+      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById('quote').textContent = randomQuote;
+    }
+
+    displayRandomQuote();
+  </script>
+</body>
+</html>
