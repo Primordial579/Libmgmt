@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bookstore Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ... your existing CSS ... */
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>📚 Bookstore</h2>
+    <button class="tab-button active" data-tab="dashboard-section">📊 Dashboard</button>
+    <button class="tab-button" data-tab="add-section">➕ Add</button>
+    <button class="tab-button" data-tab="update-section">✏️ Update</button>
+    <button class="tab-button" data-tab="delete-section">🗑️ Delete</button>
+  </div>
+
+  <div class="main">
+    <h1>Manage Inventory</h1>
+
+    <div id="search-container">
+      <input type="text" id="search" placeholder="Search by title or author..." />
+    </div>
+
+    <!-- Sections -->
+    <section id="dashboard-section">
+      <div class="chart-container">
+        <canvas id="stockChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="priceChart"></canvas>
+      </div>
+    </section>
+    <section id="add-section" class="hidden">
+      <form id="book-form">
+        <input type="text" id="title" placeholder="Title" required />
+        <input type="text" id="author" placeholder="Author" required />
+        <input type="number" step="0.01" id="price" placeholder="Price" required />
+        <input type="number" id="stock_quantity" placeholder="Stock" required />
+        <button type="submit">Add Book</button>
+      </form>
+    </section>
+    <section id="update-section" class="hidden">
+      <p>Click ✏️ next to a book to update it:</p>
+    </section>
+    <section id="delete-section" class="hidden">
+      <p>Click 🗑️ next to a book to delete it:</p>
+    </section>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Title</th><th>Author</th><th>Price</th><th>Stock</th>
+          <th id="action-header" class="hidden">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="book-table"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // Point at the correct base URL including the API path
+    const API_BASE = "https://ab5a-2405-201-d007-2820-2d87-26ea-bdac-b20c.ngrok-free.app/api/books";
+    let editingId = null;
+    let currentTab = 'dashboard-section';
+
+    async function fetchBooks(query = '') {
+      const url = query
+        ? `${API_BASE}/search?q=${encodeURIComponent(query)}`
+        : API_BASE;
+      const res = await fetch(url);
+      const data = await res.json();
+      const books = Array.isArray(data) ? data : data.books;
+      renderTable(books);
+      if (currentTab === 'dashboard-section') renderCharts(books);
+    }
+
+    function renderTable(books) {
+      const table = document.getElementById('book-table');
+      const showActions = currentTab === 'update-section' || currentTab === 'delete-section';
+      document.getElementById('action-header').classList.toggle('hidden', !showActions);
+
+      table.innerHTML = books.map(book => {
+        let actions = '';
+        if (currentTab === 'update-section') {
+          actions = `<button onclick="editBook(${book.id}, '${book.title}', '${book.author}', ${book.price}, ${book.stock_quantity})">✏️</button>`;
+        } else if (currentTab === 'delete-section') {
+          actions = `<button onclick="deleteBook(${book.id})">🗑️</button>`;
+        }
+
+        return `
+          <tr>
+            <td>${book.id}</td>
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>$${book.price}</td>
+            <td>${book.stock_quantity}</td>
+            ${showActions ? `<td class="actions">${actions}</td>` : ''}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderCharts(books) {
+      const titles = books.map(b => b.title);
+      const stocks = books.map(b => b.stock_quantity);
+      const prices = books.map(b => b.price);
+
+      if (window.stockChart) window.stockChart.destroy();
+      if (window.priceChart) window.priceChart.destroy();
+
+      window.stockChart = new Chart(document.getElementById('stockChart'), {
+        type: 'bar',
+        data: { labels: titles, datasets:[{ label:'Stock Quantity', data:stocks }] },
+        options: { responsive:true, plugins:{ legend:{ display:false } } }
+      });
+      window.priceChart = new Chart(document.getElementById('priceChart'), {
+        type: 'pie',
+        data: { labels: titles, datasets:[{ label:'Price', data:prices }] },
+        options: { responsive:true }
+      });
+    }
+
+    document.getElementById('book-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const book = {
+        title: document.getElementById('title').value,
+        author: document.getElementById('author').value,
+        price: parseFloat(document.getElementById('price').value),
+        stock_quantity: parseInt(document.getElementById('stock_quantity').value)
+      };
+
+      const method = editingId ? 'PUT' : 'POST';
+      const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
+      await fetch(url, {
+        method,
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(book)
+      });
+
+      editingId = null;
+      e.target.querySelector('button').textContent = 'Add Book';
+      e.target.reset();
+      fetchBooks();
+    });
+
+    function editBook(id, title, author, price, stock_quantity) {
+      document.getElementById('title').value = title;
+      document.getElementById('author').value = author;
+      document.getElementById('price').value = price;
+      document.getElementById('stock_quantity').value = stock_quantity;
+      editingId = id;
+      document.querySelector('#book-form button').textContent = 'Update Book';
+      showSection('add-section');
+    }
+
+    async function deleteBook(id) {
+      if (confirm('Delete this book?')) {
+        await fetch(`${API_BASE}/${id}`,{ method:'DELETE' });
+        fetchBooks();
+      }
+    }
+
+    document.getElementById('search').addEventListener('input', e => fetchBooks(e.target.value));
+    document.querySelectorAll('.tab-button').forEach(btn => btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTab = btn.dataset.tab;
+      showSection(currentTab);
+      fetchBooks();
+    }));
+
+    function showSection(id) {
+      document.querySelectorAll('section').forEach(sec=>sec.classList.toggle('hidden', sec.id!==id));
+    }
+
+    // Initial load
+    fetchBooks();
+  </script>
+</body>
+</html>
