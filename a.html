@@ -6,16 +6,13 @@
   <title>Bookstore Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Your existing CSS styles */
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       display: flex;
       font-family: 'Segoe UI', sans-serif;
       background: #f4f4f4;
     }
-
     .sidebar {
       width: 220px;
       background: #2c3e50;
@@ -25,12 +22,7 @@
       flex-direction: column;
       padding-top: 2rem;
     }
-
-    .sidebar h2 {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
+    .sidebar h2 { text-align: center; margin-bottom: 2rem; }
     .sidebar button {
       background: none;
       border: none;
@@ -42,27 +34,13 @@
       font-size: 1rem;
       transition: background 0.2s;
     }
-
-    .sidebar button:hover,
-    .sidebar button.active {
-      background: #34495e;
-    }
-
-    .main {
-      flex-grow: 1;
-      padding: 2rem;
-    }
-
-    h1 {
-      margin-top: 0;
-      color: #333;
-    }
-
+    .sidebar button:hover, .sidebar button.active { background: #34495e; }
+    .main { flex-grow: 1; padding: 2rem; }
+    h1 { margin-top: 0; color: #333; }
     #search-container {
       text-align: center;
       margin: 1rem 0;
     }
-
     #search {
       width: 60%;
       padding: 0.8rem;
@@ -72,53 +50,39 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       transition: all 0.3s;
     }
-
     #search:focus {
       outline: none;
       border-color: #3498db;
       box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
     }
-
     input, button {
       margin: 0.5rem;
       padding: 0.5rem;
     }
-
     input[type="text"], input[type="number"] {
       width: 200px;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       background: #fff;
       margin-top: 1rem;
     }
-
     th, td {
       padding: 0.75rem;
       border: 1px solid #ddd;
       text-align: center;
     }
-
     .actions button {
       margin: 0 4px;
       padding: 0.3rem 0.6rem;
     }
-
-    .hidden {
-      display: none;
-    }
-
-    section {
-      animation: fadeIn 0.3s ease;
-    }
-
+    .hidden { display: none; }
+    section { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     .chart-container {
       width: 90%;
       margin: 2rem auto;
@@ -136,22 +100,17 @@
 
   <div class="main">
     <h1>Manage Inventory</h1>
-
     <div id="search-container">
       <input type="text" id="search" placeholder="Search by title or author..." />
     </div>
 
-    <!-- Dashboard Section -->
+    <!-- Dashboard -->
     <section id="dashboard-section">
-      <div class="chart-container">
-        <canvas id="stockChart"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="priceChart"></canvas>
-      </div>
+      <div class="chart-container"><canvas id="stockChart"></canvas></div>
+      <div class="chart-container"><canvas id="priceChart"></canvas></div>
     </section>
 
-    <!-- Add Book Section -->
+    <!-- Add -->
     <section id="add-section" class="hidden">
       <form id="book-form">
         <input type="text" id="title" placeholder="Title" required />
@@ -162,12 +121,12 @@
       </form>
     </section>
 
-    <!-- Update Book Section -->
+    <!-- Update -->
     <section id="update-section" class="hidden">
       <p>Click ✏️ next to a book to update it:</p>
     </section>
 
-    <!-- Delete Book Section -->
+    <!-- Delete -->
     <section id="delete-section" class="hidden">
       <p>Click 🗑️ next to a book to delete it:</p>
     </section>
@@ -189,22 +148,19 @@
     let currentTab = 'dashboard-section';
 
     async function fetchBooks(query = '') {
-      let url = API_BASE;
-      if (query) {
-        url += `?q=${encodeURIComponent(query)}`;
-      }
-
-      const res = await fetch(url);
-      const contentType = res.headers.get("content-type");
-
-      if (!res.ok || !contentType.includes("application/json")) {
+      const url = query ? `${API_BASE}/search?q=${query}` : API_BASE;
+      console.log("📡 Fetching from:", url);
+      try {
+        const res = await fetch(url);
         const text = await res.text();
-        throw new Error("Expected JSON but got:\n" + text);
-      }
+        console.log("📄 Raw response:\n", text.slice(0, 500)); // log only the first 500 chars
 
-      const books = await res.json();
-      renderTable(books);
-      if (currentTab === 'dashboard-section') renderCharts(books);
+        const books = JSON.parse(text);
+        renderTable(books);
+        if (currentTab === 'dashboard-section') renderCharts(books);
+      } catch (e) {
+        console.error("❌ Failed to fetch books:", e);
+      }
     }
 
     function renderTable(books) {
@@ -236,7 +192,6 @@
     function renderCharts(books) {
       const stockCtx = document.getElementById('stockChart').getContext('2d');
       const priceCtx = document.getElementById('priceChart').getContext('2d');
-
       const titles = books.map(b => b.title);
       const stocks = books.map(b => b.stock_quantity);
       const prices = books.map(b => b.price);
@@ -248,16 +203,9 @@
         type: 'bar',
         data: {
           labels: titles,
-          datasets: [{
-            label: 'Stock Quantity',
-            data: stocks,
-            backgroundColor: '#3498db'
-          }]
+          datasets: [{ label: 'Stock Quantity', data: stocks, backgroundColor: '#3498db' }]
         },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } }
-        }
+        options: { responsive: true, plugins: { legend: { display: false } } }
       });
 
       window.priceChart = new Chart(priceCtx, {
@@ -270,9 +218,7 @@
             backgroundColor: titles.map(() => `hsl(${Math.random() * 360}, 60%, 70%)`)
           }]
         },
-        options: {
-          responsive: true
-        }
+        options: { responsive: true }
       });
     }
 
@@ -285,24 +231,28 @@
         stock_quantity: parseInt(document.getElementById('stock_quantity').value)
       };
 
-      if (editingId) {
-        await fetch(`${API_BASE}/${editingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(book)
-        });
-        editingId = null;
-        e.target.querySelector('button').textContent = 'Add Book';
-      } else {
-        await fetch(API_BASE, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(book)
-        });
-      }
+      try {
+        if (editingId) {
+          await fetch(`${API_BASE}/${editingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(book)
+          });
+          editingId = null;
+          e.target.querySelector('button').textContent = 'Add Book';
+        } else {
+          await fetch(API_BASE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(book)
+          });
+        }
 
-      e.target.reset();
-      fetchBooks();
+        e.target.reset();
+        fetchBooks();
+      } catch (err) {
+        console.error("❌ Error submitting book:", err);
+      }
     });
 
     function editBook(id, title, author, price, stock_quantity) {
@@ -317,14 +267,16 @@
 
     async function deleteBook(id) {
       if (confirm('Are you sure you want to delete this book?')) {
-        await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
-        fetchBooks();
+        try {
+          await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+          fetchBooks();
+        } catch (err) {
+          console.error("❌ Error deleting book:", err);
+        }
       }
     }
 
-    document.getElementById('search').addEventListener('input', e => {
-      fetchBooks(e.target.value);
-    });
+    document.getElementById('search').addEventListener('input', e => fetchBooks(e.target.value));
 
     document.querySelectorAll('.tab-button').forEach(btn => {
       btn.addEventListener('click', () => {
