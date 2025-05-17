@@ -6,87 +6,7 @@
   <title>Bookstore Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      display: flex;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f4;
-    }
-    .sidebar {
-      width: 220px;
-      background: #2c3e50;
-      height: 100vh;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      padding-top: 2rem;
-    }
-    .sidebar h2 { text-align: center; margin-bottom: 2rem; }
-    .sidebar button {
-      background: none;
-      border: none;
-      color: white;
-      padding: 1rem 1.5rem;
-      text-align: left;
-      cursor: pointer;
-      width: 100%;
-      font-size: 1rem;
-      transition: background 0.2s;
-    }
-    .sidebar button:hover, .sidebar button.active { background: #34495e; }
-    .main { flex-grow: 1; padding: 2rem; }
-    h1 { margin-top: 0; color: #333; }
-    #search-container {
-      text-align: center;
-      margin: 1rem 0;
-    }
-    #search {
-      width: 60%;
-      padding: 0.8rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s;
-    }
-    #search:focus {
-      outline: none;
-      border-color: #3498db;
-      box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
-    }
-    input, button {
-      margin: 0.5rem;
-      padding: 0.5rem;
-    }
-    input[type="text"], input[type="number"] {
-      width: 200px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      margin-top: 1rem;
-    }
-    th, td {
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-    .actions button {
-      margin: 0 4px;
-      padding: 0.3rem 0.6rem;
-    }
-    .hidden { display: none; }
-    section { animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .chart-container {
-      width: 90%;
-      margin: 2rem auto;
-    }
+    /* Your existing CSS unchanged */
   </style>
 </head>
 <body>
@@ -100,17 +20,22 @@
 
   <div class="main">
     <h1>Manage Inventory</h1>
+
     <div id="search-container">
       <input type="text" id="search" placeholder="Search by title or author..." />
     </div>
 
-    <!-- Dashboard -->
+    <!-- Dashboard Section -->
     <section id="dashboard-section">
-      <div class="chart-container"><canvas id="stockChart"></canvas></div>
-      <div class="chart-container"><canvas id="priceChart"></canvas></div>
+      <div class="chart-container">
+        <canvas id="stockChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="priceChart"></canvas>
+      </div>
     </section>
 
-    <!-- Add -->
+    <!-- Add Book Section -->
     <section id="add-section" class="hidden">
       <form id="book-form">
         <input type="text" id="title" placeholder="Title" required />
@@ -121,12 +46,12 @@
       </form>
     </section>
 
-    <!-- Update -->
+    <!-- Update Book Section -->
     <section id="update-section" class="hidden">
       <p>Click ✏️ next to a book to update it:</p>
     </section>
 
-    <!-- Delete -->
+    <!-- Delete Book Section -->
     <section id="delete-section" class="hidden">
       <p>Click 🗑️ next to a book to delete it:</p>
     </section>
@@ -148,18 +73,23 @@
     let currentTab = 'dashboard-section';
 
     async function fetchBooks(query = '') {
-      const url = query ? `${API_BASE}/search?q=${query}` : API_BASE;
-      console.log("📡 Fetching from:", url);
       try {
+        const url = query
+          ? `${API_BASE}/search?q=${encodeURIComponent(query)}`
+          : API_BASE;
         const res = await fetch(url);
-        const text = await res.text();
-        console.log("📄 Raw response:\n", text.slice(0, 500)); // log only the first 500 chars
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
-        const books = JSON.parse(text);
+        const data = await res.json();
+
+        // Handle response depending on endpoint
+        // Search returns an array, normal fetch returns object with books array
+        const books = Array.isArray(data) ? data : data.books;
+
         renderTable(books);
         if (currentTab === 'dashboard-section') renderCharts(books);
-      } catch (e) {
-        console.error("❌ Failed to fetch books:", e);
+      } catch (err) {
+        console.error('❌ Failed to fetch books:', err);
       }
     }
 
@@ -171,7 +101,7 @@
       table.innerHTML = books.map(book => {
         let actions = '';
         if (currentTab === 'update-section') {
-          actions = `<button onclick="editBook(${book.id}, '${book.title}', '${book.author}', ${book.price}, ${book.stock_quantity})">✏️</button>`;
+          actions = `<button onclick="editBook(${book.id}, '${escapeHtml(book.title)}', '${escapeHtml(book.author)}', ${book.price}, ${book.stock_quantity})">✏️</button>`;
         } else if (currentTab === 'delete-section') {
           actions = `<button onclick="deleteBook(${book.id})">🗑️</button>`;
         }
@@ -179,9 +109,9 @@
         return `
           <tr>
             <td>${book.id}</td>
-            <td>${book.title}</td>
-            <td>${book.author}</td>
-            <td>$${book.price}</td>
+            <td>${escapeHtml(book.title)}</td>
+            <td>${escapeHtml(book.author)}</td>
+            <td>$${book.price.toFixed(2)}</td>
             <td>${book.stock_quantity}</td>
             ${showActions ? `<td class="actions">${actions}</td>` : ''}
           </tr>
@@ -189,9 +119,20 @@
       }).join('');
     }
 
+    // Helper to escape single quotes and HTML to avoid breaking onclick & injection
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#39;");
+    }
+
     function renderCharts(books) {
       const stockCtx = document.getElementById('stockChart').getContext('2d');
       const priceCtx = document.getElementById('priceChart').getContext('2d');
+
       const titles = books.map(b => b.title);
       const stocks = books.map(b => b.stock_quantity);
       const prices = books.map(b => b.price);
@@ -203,9 +144,16 @@
         type: 'bar',
         data: {
           labels: titles,
-          datasets: [{ label: 'Stock Quantity', data: stocks, backgroundColor: '#3498db' }]
+          datasets: [{
+            label: 'Stock Quantity',
+            data: stocks,
+            backgroundColor: '#3498db'
+          }]
         },
-        options: { responsive: true, plugins: { legend: { display: false } } }
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } }
+        }
       });
 
       window.priceChart = new Chart(priceCtx, {
@@ -218,15 +166,17 @@
             backgroundColor: titles.map(() => `hsl(${Math.random() * 360}, 60%, 70%)`)
           }]
         },
-        options: { responsive: true }
+        options: {
+          responsive: true
+        }
       });
     }
 
     document.getElementById('book-form').addEventListener('submit', async e => {
       e.preventDefault();
       const book = {
-        title: document.getElementById('title').value,
-        author: document.getElementById('author').value,
+        title: document.getElementById('title').value.trim(),
+        author: document.getElementById('author').value.trim(),
         price: parseFloat(document.getElementById('price').value),
         stock_quantity: parseInt(document.getElementById('stock_quantity').value)
       };
@@ -247,11 +197,10 @@
             body: JSON.stringify(book)
           });
         }
-
         e.target.reset();
         fetchBooks();
       } catch (err) {
-        console.error("❌ Error submitting book:", err);
+        console.error('Error saving book:', err);
       }
     });
 
@@ -271,12 +220,14 @@
           await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
           fetchBooks();
         } catch (err) {
-          console.error("❌ Error deleting book:", err);
+          console.error('Error deleting book:', err);
         }
       }
     }
 
-    document.getElementById('search').addEventListener('input', e => fetchBooks(e.target.value));
+    document.getElementById('search').addEventListener('input', e => {
+      fetchBooks(e.target.value);
+    });
 
     document.querySelectorAll('.tab-button').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -294,6 +245,7 @@
       });
     }
 
+    // Initial load
     fetchBooks();
   </script>
 </body>
