@@ -6,6 +6,7 @@
   <title>Bookstore Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* Your existing CSS styles */
     * { box-sizing: border-box; }
 
     body {
@@ -188,7 +189,19 @@
     let currentTab = 'dashboard-section';
 
     async function fetchBooks(query = '') {
-      const res = await fetch(query ? `${API_BASE}/search?q=${query}` : API_BASE);
+      let url = API_BASE;
+      if (query) {
+        url += `?q=${encodeURIComponent(query)}`;
+      }
+
+      const res = await fetch(url);
+      const contentType = res.headers.get("content-type");
+
+      if (!res.ok || !contentType.includes("application/json")) {
+        const text = await res.text();
+        throw new Error("Expected JSON but got:\n" + text);
+      }
+
       const books = await res.json();
       renderTable(books);
       if (currentTab === 'dashboard-section') renderCharts(books);
