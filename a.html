@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bookstore Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      display: flex;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8f9fa;
+      align-items: stretch;
+      color: #333;
+    }
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(to bottom, #1a3a5f, #2c3e50);
+      min-height: 100vh;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding-top: 2rem;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: 300;
+      letter-spacing: 1px;
+      padding: 0 1rem;
+    }
+    .sidebar button {
+      background: none;
+      border: none;
+      color: #e2e8f0;
+      padding: 1rem 1.5rem;
+      text-align: left;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+    .sidebar button:hover {
+      background: rgba(255,255,255,0.1);
+      border-left: 4px solid #4299e1;
+    }
+    .sidebar button.active {
+      background: rgba(255,255,255,0.15);
+      border-left: 4px solid #4299e1;
+      font-weight: 500;
+    }
+    .main {
+      flex-grow: 1;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 { 
+      margin-top: 0; 
+      color: #2d3748; 
+      font-weight: 700;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 0.5rem;
+    }
+    #search-container { 
+      text-align: center; 
+      margin: 1.5rem 0; 
+    }
+    #search {
+      width: 70%;
+      padding: 0.8rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 30px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
+    }
+    #search:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+    }
+    #total-books {
+      margin: 1.5rem 0;
+      font-weight: 500;
+      text-align: center;
+      font-size: 1.1rem;
+      color: #2d3748;
+      padding: 0.75rem;
+      background: #ebf8ff;
+      border-radius: 8px;
+      border-left: 4px solid #4299e1;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #fff;
+      margin-top: 1.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    th {
+      background: #4a5568;
+      color: white;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 500;
+    }
+    th:first-child { border-top-left-radius: 8px; }
+    th:last-child { border-top-right-radius: 8px; }
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: #f8fafc; }
+    .actions button {
+      margin: 0 4px;
+      padding: 0.4rem 0.8rem;
+      border: none;
+      background: #e2e8f0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .actions button:hover { background: #cbd5e0; }
+    .hidden { display: none; }
+    section { 
+      animation: fadeIn 0.3s ease; 
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 1.5rem;
+    }
+    #book-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    #book-form input {
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    #book-form input:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+    }
+    #book-form button {
+      grid-column: 1 / -1;
+      background: #4299e1;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #book-form button:hover { background: #3182ce; }
+    #cancel-button {
+      grid-column: 1 / -1;
+      background: #e53e3e;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #cancel-button:hover { background: #c53030; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #pagination {
+      margin-top: 20px;
+      text-align: center;
+    }
+    #pagination button {
+      margin: 3px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    #pagination button:hover:not(.disabled) {
+      background: #f7fafc;
+      border-color: #cbd5e0;
+    }
+    #pagination button.disabled {
+      background: #f7fafc;
+      color: #a0aec0;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>📚 Bookstore Manager</h2>
+    <button class="tab-button active" data-tab="dashboard-section">📊 Dashboard</button>
+    <button class="tab-button" data-tab="add-section">➕ Add Book</button>
+    <button class="tab-button" data-tab="update-section">✏️ Update Book</button>
+    <button class="tab-button" data-tab="delete-section">🗑️ Delete Book</button>
+  </div>
+
+  <div class="main">
+    <h1>Bookstore Inventory Management</h1>
+    <div id="search-container">
+      <input type="text" id="search" placeholder="Search books by title or author..." />
+    </div>
+
+    <!-- Total Books Count (total stock) -->
+    <div id="total-books"></div>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard-section">
+      <p>Welcome to your bookstore dashboard. Use the sidebar navigation to manage your inventory.</p>
+    </section>
+
+    <!-- Add/Update Book Section -->
+    <section id="add-section" class="hidden">
+      <form id="book-form">
+        <input type="text" id="title" placeholder="Book Title" required />
+        <input type="text" id="author" placeholder="Author Name" required />
+        <input type="number" step="0.01" id="price" placeholder="Price (₹)" required />
+        <input type="number" id="stock_quantity" placeholder="Stock Quantity" required />
+        <button type="submit">Add Book</button>
+        <!-- Cancel button, initially hidden -->
+        <button type="button" id="cancel-button" class="hidden">Cancel</button>
+      </form>
+    </section>
+
+    <!-- Update Book Section -->
+    <section id="update-section" class="hidden">
+      <p>Click the ✏️ button next to a book to update its details.</p>
+    </section>
+
+    <!-- Delete Book Section -->
+    <section id="delete-section" class="hidden">
+      <p>Click the 🗑️ button next to a book to remove it from inventory.</p>
+    </section>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Price (₹)</th>
+          <th>Stock</th>
+          <th id="action-header" class="hidden">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="book-table"></tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div id="pagination"></div>
+  </div>
+
+  <script>
+    const API_BASE = "https://ten-otters-cross.loca.lt";
+    let editingId = null;
+    let currentTab = 'dashboard-section';
+
+    async function fetchBooks(page = 1, query = '') {
+      let url = query 
+        ? `${API_BASE}/search?q=${encodeURIComponent(query)}`
+        : `${API_BASE}?page=${page}`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const books = Array.isArray(data) ? data : data.books;
+        renderTable(books);
+        if (!query && data.totalBooks !== undefined) {
+          document.getElementById('total-books').textContent = `📊 Total Books In Stock: ${data.totalBooks}`;
+        } else {
+          document.getElementById('total-books').textContent = '';
+        }
+        if (!query && data.totalPages) {
+          renderPagination(data.currentPage, data.totalPages);
+        } else {
+          document.getElementById('pagination').innerHTML = '';
+        }
+      } catch (error) {
+        console.error("Error fetching books:", error);
+      }
+    }
+
+    function renderTable(books) {
+      const table = document.getElementById('book-table');
+      const showActions = currentTab === 'update-section' || currentTab === 'delete-section';
+      document.getElementById('action-header').classList.toggle('hidden', !showActions);
+      table.innerHTML = books.map(book => {
+        let actions = '';
+        if (currentTab === 'update-section') {
+          actions = `<button onclick="editBook(${book.id}, '${book.title}', '${book.author}', ${book.price}, ${book.stock_quantity})">✏️ Edit</button>`;
+        } else if (currentTab === 'delete-section') {
+          actions = `<button onclick="deleteBook(${book.id})">🗑️ Delete</button>`;
+        }
+        return `
+          <tr>
+            <td>${book.id}</td>
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>₹${Number(book.price).toFixed(2)}</td>
+            <td>${book.stock_quantity}</td>
+            ${showActions ? `<td class="actions">${actions}</td>` : ''}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('book-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const book = {
+        title: document.getElementById('title').value,
+        author: document.getElementById('author').value,
+        price: parseFloat(document.getElementById('price').value),
+        stock_quantity: parseInt(document.getElementById('stock_quantity').value)
+      };
+      if (editingId) {
+        await fetch(`${API_BASE}/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(book)
+        });
+        // After updating, reset editing state and form,
+        // then switch back to the update section.
+        editingId = null;
+        document.querySelector('#book-form button[type="submit"]').textContent = 'Add Book';
+        document.getElementById('cancel-button').classList.add('hidden');
+        document.getElementById('book-form').reset();
+        showSection('update-section');
+      } else {
+        await fetch(API_BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(book)
+        });
+        // After adding, reset the form and remain in the add section.
+        document.getElementById('book-form').reset();
+        showSection('add-section');
+      }
+      fetchBooks();
+    });
+
+    function editBook(id, title, author, price, stock_quantity) {
+      document.getElementById('title').value = title;
+      document.getElementById('author').value = author;
+      document.getElementById('price').value = price;
+      document.getElementById('stock_quantity').value = stock_quantity;
+      editingId = id;
+      document.querySelector('#book-form button[type="submit"]').textContent = 'Update Book';
+      // Show the cancel button when editing
+      document.getElementById('cancel-button').classList.remove('hidden');
+      // Switch to the form view for editing
+      showSection('add-section');
+    }
+
+    // Cancel update process and return to the update section
+    document.getElementById('cancel-button').addEventListener('click', () => {
+      editingId = null;
+      document.getElementById('book-form').reset();
+      document.querySelector('#book-form button[type="submit"]').textContent = 'Add Book';
+      document.getElementById('cancel-button').classList.add('hidden');
+      showSection('update-section');
+    });
+
+    async function deleteBook(id) {
+      if (confirm('Are you sure you want to delete this book?')) {
+        await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+        fetchBooks();
+      }
+    }
+
+    document.getElementById('search').addEventListener('input', e => {
+      fetchBooks(1, e.target.value);
+    });
+
+    document.querySelectorAll('.tab-button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTab = btn.dataset.tab;
+        showSection(currentTab);
+        // If switching to Add Book tab, reset editing state
+        if (currentTab === 'add-section') {
+          editingId = null;
+          document.getElementById('book-form').reset();
+          document.querySelector('#book-form button[type="submit"]').textContent = 'Add Book';
+          document.getElementById('cancel-button').classList.add('hidden');
+        }
+        fetchBooks();
+      });
+    });
+
+    function showSection(sectionId) {
+      document.querySelectorAll('section').forEach(sec => {
+        sec.classList.toggle('hidden', sec.id !== sectionId);
+      });
+    }
+
+    function renderPagination(currentPage, totalPages) {
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = '';
+      if (currentPage > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = '← Previous';
+        prevBtn.onclick = () => fetchBooks(currentPage - 1);
+        pagination.appendChild(prevBtn);
+      }
+      for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.innerText = i;
+        pageBtn.disabled = i === currentPage;
+        if (i === currentPage) pageBtn.classList.add('disabled');
+        pageBtn.onclick = () => fetchBooks(i);
+        pagination.appendChild(pageBtn);
+      }
+      if (currentPage < totalPages) {
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = 'Next →';
+        nextBtn.onclick = () => fetchBooks(currentPage + 1);
+        pagination.appendChild(nextBtn);
+      }
+    }
+
+    // Load initial books on page load
+    fetchBooks();
+  </script>
+</body>
+</html>
