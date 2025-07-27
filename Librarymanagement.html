@@ -3,498 +3,426 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>3D Bookstore Dashboard</title>
+  <title>Bookstore Dashboard (Firebase)</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      --dark: #1a1d29;
+      --dark-light: #252837;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a3bd;
+      --accent: #667eea;
+      --surface: rgba(255, 255, 255, 0.05);
+      --glass: rgba(255, 255, 255, 0.1);
+      --shadow: rgba(0, 0, 0, 0.3);
+      --border-radius: 16px;
+      --transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
     * { 
       box-sizing: border-box; 
       margin: 0;
       padding: 0;
     }
 
-    :root {
-      --primary-color: #6366f1;
-      --secondary-color: #8b5cf6;
-      --accent-color: #06b6d4;
-      --text-primary: #1f2937;
-      --text-secondary: #6b7280;
-      --bg-primary: #0f172a;
-      --bg-secondary: #1e293b;
-      --glass-bg: rgba(255, 255, 255, 0.1);
-      --glass-border: rgba(255, 255, 255, 0.2);
-    }
-
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--dark);
+      color: var(--text-primary);
+      display: flex;
       min-height: 100vh;
       overflow-x: hidden;
-      perspective: 1000px;
     }
 
-    /* Animated background particles */
-    .bg-particles {
+    body::before {
+      content: '';
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(240, 147, 251, 0.2) 0%, transparent 50%);
+      pointer-events: none;
       z-index: -1;
-      overflow: hidden;
-    }
-
-    .particle {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      animation: float 15s infinite linear;
-    }
-
-    @keyframes float {
-      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-    }
-
-    .container {
-      display: flex;
-      min-height: 100vh;
-      backdrop-filter: blur(10px);
     }
 
     .sidebar {
       width: 280px;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(37, 40, 55, 0.8);
       backdrop-filter: blur(20px);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
-      color: white;
+      border-right: 1px solid var(--surface);
+      height: 100vh;
       display: flex;
       flex-direction: column;
       padding: 2rem 0;
-      transform: translateZ(50px);
-      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
     }
 
-    .sidebar:hover {
-      transform: translateZ(60px);
-      box-shadow: 15px 0 40px rgba(0, 0, 0, 0.4);
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--primary-gradient);
+      opacity: 0.05;
+      pointer-events: none;
     }
 
-    .logo {
+    .sidebar h2 {
       text-align: center;
       margin-bottom: 3rem;
-      padding: 0 2rem;
-    }
-
-    .logo h2 {
       font-size: 1.5rem;
       font-weight: 700;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: var(--primary-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
-    }
-
-    .logo p {
-      font-size: 0.9rem;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .nav-item {
+      background-clip: text;
       position: relative;
-      margin: 0.5rem 1rem;
-      border-radius: 12px;
-      overflow: hidden;
-      transform: translateZ(0);
-      transition: all 0.3s ease;
     }
 
-    .nav-item:hover {
-      transform: translateZ(20px) translateX(10px);
-    }
-
-    .nav-item button {
-      width: 100%;
-      background: transparent;
+    .tab-button {
+      background: none;
       border: none;
-      color: rgba(255, 255, 255, 0.8);
-      padding: 1rem 1.5rem;
+      color: var(--text-secondary);
+      padding: 1rem 2rem;
       text-align: left;
       cursor: pointer;
+      width: 100%;
       font-size: 1rem;
       font-weight: 500;
-      transition: all 0.3s ease;
+      transition: var(--transition);
+      position: relative;
       display: flex;
       align-items: center;
       gap: 1rem;
-      border-radius: 12px;
+      margin: 0.25rem 0;
     }
 
-    .nav-item button:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      transform: translateX(5px);
-    }
-
-    .nav-item button.active {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-    }
-
-    .nav-item button.active::before {
+    .tab-button::before {
       content: '';
       position: absolute;
       left: 0;
-      top: 0;
+      top: 50%;
+      transform: translateY(-50%);
       width: 4px;
+      height: 0;
+      background: var(--primary-gradient);
+      border-radius: 0 4px 4px 0;
+      transition: var(--transition);
+    }
+
+    .tab-button:hover {
+      color: var(--text-primary);
+      background: var(--surface);
+      transform: translateX(8px);
+    }
+
+    .tab-button:hover::before {
+      height: 60%;
+    }
+
+    .tab-button.active {
+      color: var(--text-primary);
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      transform: translateX(8px);
+    }
+
+    .tab-button.active::before {
       height: 100%;
-      background: linear-gradient(180deg, #06b6d4, #8b5cf6);
-      border-radius: 0 2px 2px 0;
     }
 
     .main {
-      flex: 1;
+      flex-grow: 1;
       padding: 2rem;
-      transform-style: preserve-3d;
+      position: relative;
     }
 
-    .header {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      color: white;
-      transform: translateZ(30px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    }
-
-    .header:hover {
-      transform: translateZ(40px);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    }
-
-    .header h1 {
+    h1 {
       font-size: 2.5rem;
       font-weight: 700;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, #ffffff, #e2e8f0);
+      margin-bottom: 2rem;
+      background: var(--primary-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-
-    .header p {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 1.1rem;
-    }
-
-    .search-container {
-      position: relative;
-      margin: 2rem 0;
-      transform: translateZ(25px);
-    }
-
-    .search-wrapper {
-      position: relative;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 1.2rem 1.5rem 1.2rem 3.5rem;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      outline: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .search-input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .search-input:focus {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: var(--accent-color);
-      box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
-      transform: translateY(-2px);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 1.2rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 1.2rem;
-    }
-
-    .stats {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      color: white;
+      background-clip: text;
       text-align: center;
-      transform: translateZ(20px);
-      transition: all 0.3s ease;
     }
 
-    .stats:hover {
-      transform: translateZ(30px);
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .content-section {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      padding: 2rem;
-      color: white;
-      transform: translateZ(15px);
-      animation: slideInUp 0.6s ease;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    }
-
-    .content-section:hover {
-      transform: translateZ(25px);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    }
-
-    @keyframes slideInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px) translateZ(15px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) translateZ(15px);
-      }
-    }
-
-    .form-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .input-group {
-      position: relative;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 1rem 1.2rem;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-
-    .form-input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .form-input:focus {
-      border-color: var(--accent-color);
-      background: rgba(255, 255, 255, 0.15);
-      box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
-      transform: translateY(-2px);
-    }
-
-    .btn {
-      padding: 1rem 2rem;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
-    }
-
-    .table-container {
-      overflow: hidden;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .table th {
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      padding: 1.5rem 1rem;
-      text-align: left;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .table td {
-      padding: 1.2rem 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      color: rgba(255, 255, 255, 0.9);
-      transition: all 0.3s ease;
-    }
-
-    .table tr:hover td {
-      background: rgba(255, 255, 255, 0.05);
-      transform: translateX(5px);
-    }
-
-    .action-btn {
-      padding: 0.5rem 1rem;
-      margin: 0 0.3rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.2s ease;
-    }
-
-    .action-btn.edit {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: white;
-    }
-
-    .action-btn.delete {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-    }
-
-    .action-btn:hover {
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .pagination {
+    #search-container {
       display: flex;
       justify-content: center;
-      gap: 0.5rem;
-      margin-top: 2rem;
+      margin: 2rem 0;
+      position: relative;
     }
 
-    .pagination button {
-      padding: 0.8rem 1.2rem;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    #search {
+      width: min(600px, 80%);
+      padding: 1rem 1.5rem;
+      font-size: 1.1rem;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--surface);
+      border-radius: var(--border-radius);
+      color: var(--text-primary);
+      transition: var(--transition);
+      box-shadow: 0 8px 32px var(--shadow);
     }
 
-    .pagination button:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.2);
+    #search::placeholder {
+      color: var(--text-secondary);
+    }
+
+    #search:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2), 0 8px 32px var(--shadow);
       transform: translateY(-2px);
     }
 
-    .pagination button:disabled {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      cursor: not-allowed;
+    #total-books {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 1rem 0;
+      padding: 1rem;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border-radius: var(--border-radius);
+      border: 1px solid var(--surface);
+      box-shadow: 0 8px 32px var(--shadow);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    section {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--surface);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin: 2rem 0;
+      box-shadow: 0 8px 32px var(--shadow);
+      animation: slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.8s;
+    }
+
+    section:hover::before {
+      left: 100%;
+    }
+
+    @keyframes slideIn {
+      from { 
+        opacity: 0; 
+        transform: translateY(30px) scale(0.95); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+      }
     }
 
     .hidden {
       display: none !important;
     }
 
-    /* Dashboard specific styles */
-    .dashboard-grid {
+    #book-form {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      align-items: end;
     }
 
-    .dashboard-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      padding: 2rem;
-      color: white;
-      transform: translateZ(10px);
-      transition: all 0.3s ease;
+    input[type="text"], input[type="number"] {
+      padding: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--glass);
+      border-radius: var(--border-radius);
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
     }
 
-    .dashboard-card:hover {
-      transform: translateZ(20px) rotateX(5deg);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    input[type="text"]:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
     }
 
-    .card-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.8;
+    input::placeholder {
+      color: var(--text-secondary);
     }
 
-    .card-title {
-      font-size: 1.2rem;
+    button {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
     }
 
-    .card-description {
-      color: rgba(255, 255, 255, 0.8);
-      line-height: 1.6;
+    button[type="submit"] {
+      background: var(--success-gradient);
+      color: white;
+      box-shadow: 0 4px 20px rgba(79, 172, 254, 0.3);
     }
 
-    /* Responsive design */
+    button[type="submit"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(79, 172, 254, 0.4);
+    }
+
+    #cancel-button {
+      background: var(--danger-gradient);
+      color: white;
+      box-shadow: 0 4px 20px rgba(250, 112, 154, 0.3);
+    }
+
+    #cancel-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(250, 112, 154, 0.4);
+    }
+
+    .table-container {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--surface);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 8px 32px var(--shadow);
+      margin: 2rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 1.5rem 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.9rem;
+    }
+
+    td {
+      padding: 1.5rem 1rem;
+      border-bottom: 1px solid var(--surface);
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    tbody tr {
+      transition: var(--transition);
+      position: relative;
+    }
+
+    tbody tr::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 100%;
+      background: var(--primary-gradient);
+      opacity: 0.1;
+      transition: var(--transition);
+    }
+
+    tbody tr:hover {
+      background: var(--surface);
+      transform: scale(1.01);
+    }
+
+    tbody tr:hover::before {
+      width: 100%;
+    }
+
+    .actions button {
+      margin: 0 0.5rem;
+      padding: 0.8rem 1.2rem;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      min-width: 50px;
+      transition: var(--transition);
+    }
+
+    .actions button:hover {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    #pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+
+    #pagination button {
+      min-width: 50px;
+      padding: 0.8rem 1.2rem;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--surface);
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+
+    #pagination button:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    #pagination button:disabled {
+      background: var(--primary-gradient);
+      color: white;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
-      .container {
+      body {
         flex-direction: column;
       }
       
@@ -506,159 +434,525 @@
         padding: 1rem;
       }
       
-      .nav-item {
-        margin: 0 0.5rem;
-        min-width: 150px;
+      .sidebar h2 {
+        margin: 0 1rem 0 0;
+        font-size: 1.2rem;
+      }
+      
+      .tab-button {
+        white-space: nowrap;
+        padding: 0.8rem 1.5rem;
       }
       
       .main {
         padding: 1rem;
       }
       
-      .header h1 {
+      h1 {
         font-size: 2rem;
       }
       
-      .form-container {
+      #book-form {
         grid-template-columns: 1fr;
+      }
+      
+      table {
+        font-size: 0.9rem;
+      }
+      
+      th, td {
+        padding: 1rem 0.5rem;
+      }
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--surface);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--dark-light);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-gradient);
+    }
+
+    /* Floating Action Buttons */
+    .fab-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .fab {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fab:hover {
+      transform: scale(1.1) rotate(10deg);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .stat-card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--surface);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      text-align: center;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--primary-gradient);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Advanced Table Features */
+    .table-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .sort-controls, .filter-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .sort-btn, .filter-btn {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--surface);
+      color: var(--text-primary);
+      padding: 0.8rem 1.2rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.9rem;
+    }
+
+    .sort-btn:hover, .filter-btn:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .sort-btn.active, .filter-btn.active {
+      background: var(--accent);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Notification System */
+    .notification {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--surface);
+      border-radius: var(--border-radius);
+      padding: 1rem 1.5rem;
+      color: var(--text-primary);
+      box-shadow: 0 8px 32px var(--shadow);
+      transform: translateX(400px);
+      transition: var(--transition);
+      z-index: 2000;
+      max-width: 300px;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      border-left: 4px solid #4facfe;
+    }
+
+    .notification.error {
+      border-left: 4px solid #fa709a;
+    }
+
+    .notification.info {
+      border-left: 4px solid #667eea;
+    }
+
+    /* Enhanced Form Styling */
+    .form-group {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .form-group label {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      color: var(--text-secondary);
+      transition: var(--transition);
+      pointer-events: none;
+      font-size: 1rem;
+    }
+
+    .form-group input:focus + label,
+    .form-group input:not(:placeholder-shown) + label {
+      top: -0.5rem;
+      left: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: var(--dark);
+      padding: 0 0.5rem;
+    }
+
+    /* Dark Mode Toggle */
+    .theme-toggle {
+      position: fixed;
+      top: 2rem;
+      left: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--surface);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1) rotate(180deg);
+      background: var(--primary-gradient);
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 4px;
+      background: var(--primary-gradient);
+      z-index: 3000;
+      transition: width 0.3s ease;
+    }
+
+    /* Particle Animation */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: float 6s infinite linear;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.3;
+      }
+      90% {
+        opacity: 0.3;
+      }
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Enhanced Mobile Styles */
+    @media (max-width: 768px) {
+      .fab-container {
+        bottom: 1rem;
+        right: 1rem;
+      }
+      
+      .fab {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .table-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .sort-controls, .filter-controls {
+        justify-content: center;
+      }
+      
+      .notification {
+        top: 1rem;
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
+      }
+      
+      .theme-toggle {
+        top: 1rem;
+        left: 1rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
       }
     }
   </style>
 </head>
 <body>
-  <!-- Animated Background Particles -->
-  <div class="bg-particles"></div>
+  <div class="sidebar">
+    <h2>📚 Bookstore Manager</h2>
+    <button class="tab-button active" data-tab="dashboard-section">
+      <span>📊</span>
+      <span>Dashboard</span>
+    </button>
+    <button class="tab-button" data-tab="add-section">
+      <span>➕</span>
+      <span>Add Book</span>
+    </button>
+    <button class="tab-button" data-tab="update-section">
+      <span>✏️</span>
+      <span>Update Book</span>
+    </button>
+    <button class="tab-button" data-tab="delete-section">
+      <span>🗑️</span>
+      <span>Delete Book</span>
+    </button>
+  </div>
 
-  <div class="container">
-    <div class="sidebar">
-      <div class="logo">
-        <h2>📚 BookVault</h2>
-        <p>3D Inventory System</p>
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progress-bar"></div>
+  
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="theme-toggle" title="Toggle Theme">🌙</button>
+  
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Floating Action Buttons -->
+  <div class="fab-container">
+    <button class="fab" onclick="scrollToTop()" title="Scroll to Top">↑</button>
+    <button class="fab" onclick="exportData()" title="Export Data">📊</button>
+  </div>
+
+  <div class="main">
+    <h1>✨ Bookstore Inventory Management</h1>
+    <div id="search-container">
+      <input type="text" id="search" placeholder="🔍 Search books by title or author..." />
+    </div>
+    
+    <!-- Stats Grid -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="total-books-stat">0</div>
+        <div class="stat-label">📚 Total Books</div>
       </div>
-      
-      <div class="nav-item">
-        <button class="tab-button active" data-tab="dashboard-section">
-          <span>📊</span> Dashboard
-        </button>
+      <div class="stat-card">
+        <div class="stat-number" id="total-value-stat">₹0</div>
+        <div class="stat-label">💰 Total Value</div>
       </div>
-      
-      <div class="nav-item">
-        <button class="tab-button" data-tab="add-section">
-          <span>➕</span> Add Book
-        </button>
+      <div class="stat-card">
+        <div class="stat-number" id="unique-authors-stat">0</div>
+        <div class="stat-label">✍️ Unique Authors</div>
       </div>
-      
-      <div class="nav-item">
-        <button class="tab-button" data-tab="update-section">
-          <span>✏️</span> Update Book
-        </button>
+      <div class="stat-card">
+        <div class="stat-number" id="avg-price-stat">₹0</div>
+        <div class="stat-label">📈 Average Price</div>
       </div>
-      
-      <div class="nav-item">
-        <button class="tab-button" data-tab="delete-section">
-          <span>🗑️</span> Delete Book
-        </button>
+    </div>
+    
+    <div id="total-books"></div>
+
+    <section id="dashboard-section">
+      <h3 style="margin-bottom: 1rem; color: var(--accent);">📈 Welcome to Your Dashboard</h3>
+      <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-secondary);">
+        Welcome to your modern bookstore dashboard. Use the elegant sidebar navigation to manage your inventory with style. 
+        Experience smooth animations and a beautiful interface designed for productivity.
+      </p>
+    </section>
+
+    <section id="add-section" class="hidden">
+      <h3 style="margin-bottom: 1.5rem; color: var(--accent);">📝 Add New Book</h3>
+      <form id="book-form">
+        <div class="form-group">
+          <input type="text" id="title" placeholder=" " required />
+          <label for="title">📖 Book Title</label>
+        </div>
+        <div class="form-group">
+          <input type="text" id="author" placeholder=" " required />
+          <label for="author">✍️ Author Name</label>
+        </div>
+        <div class="form-group">
+          <input type="number" step="0.01" id="price" placeholder=" " required />
+          <label for="price">💰 Price (₹)</label>
+        </div>
+        <div class="form-group">
+          <input type="number" id="stock_quantity" placeholder=" " required />
+          <label for="stock_quantity">📦 Stock Quantity</label>
+        </div>
+        <div style="display: flex; gap: 1rem; grid-column: 1 / -1;">
+          <button type="submit">✨ Add Book</button>
+          <button type="button" id="cancel-button" class="hidden">❌ Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="update-section" class="hidden">
+      <h3 style="margin-bottom: 1rem; color: var(--accent);">🔄 Update Books</h3>
+      <p style="color: var(--text-secondary); line-height: 1.6;">
+        Click the ✏️ edit button next to any book in the table below to update its details. 
+        The form will auto-populate with current values for easy editing.
+      </p>
+    </section>
+
+    <section id="delete-section" class="hidden">
+      <h3 style="margin-bottom: 1rem; color: var(--accent);">⚠️ Delete Books</h3>
+      <p style="color: var(--text-secondary); line-height: 1.6;">
+        Click the 🗑️ delete button next to any book you want to remove from inventory. 
+        You'll be asked to confirm before the book is permanently deleted.
+      </p>
+    </section>
+
+    <!-- Table Controls -->
+    <div class="table-controls">
+      <div class="sort-controls">
+        <span style="color: var(--text-secondary); margin-right: 1rem;">Sort by:</span>
+        <button class="sort-btn active" data-sort="title">📖 Title</button>
+        <button class="sort-btn" data-sort="author">✍️ Author</button>
+        <button class="sort-btn" data-sort="price">💰 Price</button>
+        <button class="sort-btn" data-sort="stock">📦 Stock</button>
+      </div>
+      <div class="filter-controls">
+        <span style="color: var(--text-secondary); margin-right: 1rem;">Filter:</span>
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="low-stock">Low Stock</button>
+        <button class="filter-btn" data-filter="high-value">High Value</button>
       </div>
     </div>
 
-    <div class="main">
-      <div class="header">
-        <h1>BookVault 3D</h1>
-        <p>Advanced Inventory Management System</p>
-      </div>
-
-      <div class="search-container">
-        <div class="search-wrapper">
-          <div class="search-icon">🔍</div>
-          <input type="text" id="search" class="search-input" placeholder="Search books by title or author..." />
-        </div>
-      </div>
-
-      <div id="total-books" class="stats"></div>
-
-      <section id="dashboard-section" class="content-section">
-        <div class="dashboard-grid">
-          <div class="dashboard-card">
-            <div class="card-icon">📊</div>
-            <div class="card-title">Analytics Dashboard</div>
-            <div class="card-description">
-              Monitor your bookstore's performance with real-time analytics and insights. Track sales, inventory levels, and popular titles.
-            </div>
-          </div>
-          
-          <div class="dashboard-card">
-            <div class="card-icon">📚</div>
-            <div class="card-title">Inventory Management</div>
-            <div class="card-description">
-              Efficiently manage your book collection with advanced search, filtering, and categorization features.
-            </div>
-          </div>
-          
-          <div class="dashboard-card">
-            <div class="card-icon">🎯</div>
-            <div class="card-title">Smart Recommendations</div>
-            <div class="card-description">
-              Get AI-powered insights on which books to stock based on trends and customer preferences.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="add-section" class="content-section hidden">
-        <h2 style="margin-bottom: 2rem; font-size: 1.8rem;">Add New Book</h2>
-        <form id="book-form">
-          <div class="form-container">
-            <div class="input-group">
-              <input type="text" id="title" class="form-input" placeholder="Book Title" required />
-            </div>
-            <div class="input-group">
-              <input type="text" id="author" class="form-input" placeholder="Author Name" required />
-            </div>
-            <div class="input-group">
-              <input type="number" step="0.01" id="price" class="form-input" placeholder="Price (₹)" required />
-            </div>
-            <div class="input-group">
-              <input type="number" id="stock_quantity" class="form-input" placeholder="Stock Quantity" required />
-            </div>
-          </div>
-          <div style="display: flex; gap: 1rem;">
-            <button type="submit" class="btn btn-primary">Add Book</button>
-            <button type="button" id="cancel-button" class="btn btn-secondary hidden">Cancel</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="update-section" class="content-section hidden">
-        <h2 style="margin-bottom: 2rem; font-size: 1.8rem;">Update Books</h2>
-        <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem;">
-          Click the ✏️ edit button next to any book in the table below to update its details.
-        </p>
-      </section>
-
-      <section id="delete-section" class="content-section hidden">
-        <h2 style="margin-bottom: 2rem; font-size: 1.8rem;">Delete Books</h2>
-        <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem;">
-          Click the 🗑️ delete button next to any book in the table below to remove it from inventory.
-        </p>
-      </section>
-
-      <div class="table-container">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Price (₹)</th>
-              <th>Stock</th>
-              <th id="action-header" class="hidden">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="book-table"></tbody>
-        </table>
-      </div>
-      
-      <div id="pagination" class="pagination"></div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>📖 Title</th>
+            <th>✍️ Author</th>
+            <th>💰 Price (₹)</th>
+            <th>📦 Stock</th>
+            <th id="action-header" class="hidden">⚡ Actions</th>
+          </tr>
+        </thead>
+        <tbody id="book-table">
+          <tr>
+            <td colspan="4" style="padding: 3rem; color: var(--text-secondary);">
+              <div class="loading"></div>
+              <span style="margin-left: 1rem;">Loading books...</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    
+    <div id="pagination"></div>
   </div>
 
   <!-- Firebase SDKs -->
@@ -666,24 +960,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <script>
-    // Create animated background particles
-    function createParticles() {
-      const particlesContainer = document.querySelector('.bg-particles');
-      const particleCount = 20;
-      
-      for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.width = Math.random() * 10 + 5 + 'px';
-        particle.style.height = particle.style.width;
-        particle.style.animationDelay = Math.random() * 15 + 's';
-        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-        particlesContainer.appendChild(particle);
-      }
-    }
-
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDRhHq_pBZd7ZTbkFhHKZPPxYksYRTwie4",
       authDomain: "mydb-e80a6.firebaseapp.com",
@@ -700,18 +976,174 @@
     let allBooks = [];
     let editingKey = null;
     let currentTab = 'dashboard-section';
+    let currentSort = 'title';
+    let currentFilter = 'all';
+    let sortDirection = 'asc';
+
+    // Notification System
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+          <span>${message}</span>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.classList.add('show'), 100);
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 400);
+      }, 3000);
+    }
+
+    // Particle System
+    function createParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+      particle.style.animationDelay = Math.random() * 2 + 's';
+      document.getElementById('particles').appendChild(particle);
+      
+      setTimeout(() => {
+        if (particle.parentNode) {
+          particle.parentNode.removeChild(particle);
+        }
+      }, 8000);
+    }
+
+    // Create particles periodically
+    setInterval(createParticle, 2000);
+
+    // Progress Bar
+    function updateProgressBar(percentage) {
+      document.getElementById('progress-bar').style.width = percentage + '%';
+    }
+
+    // Scroll to top function
+    window.scrollToTop = function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Export data function
+    window.exportData = function() {
+      const csvContent = "data:text/csv;charset=utf-8," + 
+        "Title,Author,Price,Stock\n" +
+        allBooks.map(book => `"${book.title}","${book.author}",${book.price},${book.stock_quantity}`).join('\n');
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'bookstore_inventory.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showNotification('Data exported successfully!', 'success');
+    }
+
+    // Theme toggle functionality
+    document.getElementById('theme-toggle').onclick = function() {
+      const isLight = document.body.classList.toggle('light-theme');
+      this.textContent = isLight ? '☀️' : '🌙';
+      showNotification(`Switched to ${isLight ? 'light' : 'dark'} theme`, 'info');
+    }
+
+    // Update stats
+    function updateStats() {
+      const totalBooks = allBooks.reduce((sum, b) => sum + Number(b.stock_quantity), 0);
+      const totalValue = allBooks.reduce((sum, b) => sum + (Number(b.price) * Number(b.stock_quantity)), 0);
+      const uniqueAuthors = new Set(allBooks.map(b => b.author)).size;
+      const avgPrice = allBooks.length > 0 ? totalValue / totalBooks : 0;
+      
+      document.getElementById('total-books-stat').textContent = totalBooks;
+      document.getElementById('total-value-stat').textContent = '₹' + totalValue.toFixed(2);
+      document.getElementById('unique-authors-stat').textContent = uniqueAuthors;
+      document.getElementById('avg-price-stat').textContent = '₹' + avgPrice.toFixed(2);
+    }
+
+    // Sort and filter functions
+    function sortBooks(books, sortBy, direction = 'asc') {
+      return books.sort((a, b) => {
+        let aval, bval;
+        switch(sortBy) {
+          case 'title': aval = a.title.toLowerCase(); bval = b.title.toLowerCase(); break;
+          case 'author': aval = a.author.toLowerCase(); bval = b.author.toLowerCase(); break;
+          case 'price': aval = Number(a.price); bval = Number(b.price); break;
+          case 'stock': aval = Number(a.stock_quantity); bval = Number(b.stock_quantity); break;
+          default: return 0;
+        }
+        
+        if (aval < bval) return direction === 'asc' ? -1 : 1;
+        if (aval > bval) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    function filterBooks(books, filter) {
+      switch(filter) {
+        case 'low-stock': return books.filter(b => Number(b.stock_quantity) <= 5);
+        case 'high-value': return books.filter(b => Number(b.price) >= 500);
+        default: return books;
+      }
+    }
+
+    // Setup sort and filter controls
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+      btn.onclick = () => {
+        const newSort = btn.dataset.sort;
+        if (currentSort === newSort) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSort = newSort;
+          sortDirection = 'asc';
+        }
+        
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        btn.innerHTML = btn.innerHTML.split(' ')[0] + ' ' + btn.innerHTML.split(' ')[1] + (sortDirection === 'desc' ? ' ↓' : ' ↑');
+        
+        renderPage(1, document.getElementById('search').value);
+      };
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.onclick = () => {
+        currentFilter = btn.dataset.filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderPage(1, document.getElementById('search').value);
+      };
+    });
 
     function fetchBooks() {
+      updateProgressBar(20);
       db.once('value', snap => {
+        updateProgressBar(60);
         const obj = snap.val() || {};
         allBooks = Object.entries(obj).map(([key, val]) => ({ key, ...val }));
+        updateProgressBar(80);
+        updateStats();
         renderPage(1);
+        updateProgressBar(100);
+        setTimeout(() => updateProgressBar(0), 500);
       });
     }
 
     function renderPage(page = 1, query = '') {
       const limit = 12;
-      let list = allBooks;
+      let list = [...allBooks];
+      
+      // Apply sorting
+      list = sortBooks(list, currentSort, sortDirection);
+      
+      // Apply filtering
+      list = filterBooks(list, currentFilter);
+      
+      // Apply search
       if (query) {
         const q = query.toLowerCase();
         list = list.filter(b =>
@@ -719,15 +1151,16 @@
           b.author.toLowerCase().includes(q)
         );
       }
-      const totalStock = list.reduce((sum, b) => sum + Number(b.stock_quantity), 0);
-      const totalValue = list.reduce((sum, b) => sum + (Number(b.price) * Number(b.stock_quantity)), 0);
       
-      document.getElementById('total-books').innerHTML = query ? '' : 
-        `<div style="display: flex; justify-content: space-around; text-align: center;">
-          <div><h3>📚 ${list.length}</h3><p>Total Books</p></div>
-          <div><h3>📦 ${totalStock}</h3><p>Stock Quantity</p></div>
-          <div><h3>₹${totalValue.toFixed(2)}</h3><p>Total Value</p></div>
-        </div>`;
+      const totalStock = list.reduce((sum, b) => sum + Number(b.stock_quantity), 0);
+      const totalBooksElement = document.getElementById('total-books');
+      
+      let statusText = '';
+      if (query) statusText += `🔍 Found ${list.length} books matching "${query}"`;
+      if (currentFilter !== 'all') statusText += ` | 🔽 Filter: ${currentFilter}`;
+      if (!statusText) statusText = `📊 Showing ${list.length} books | Total Stock: ${totalStock}`;
+      
+      totalBooksElement.textContent = statusText;
 
       const totalPages = Math.ceil(list.length / limit);
       const start = (page - 1) * limit, end = start + limit;
@@ -741,18 +1174,29 @@
       const showActions = currentTab === 'update-section' || currentTab === 'delete-section';
       document.getElementById('action-header').classList.toggle('hidden', !showActions);
       
-      const html = books.map(b => {
+      if (books.length === 0) {
+        const html = `<tr>
+          <td colspan="${showActions ? 5 : 4}" style="padding: 3rem; color: var(--text-secondary);">
+            <span style="font-size: 2rem;">📭</span><br><br>
+            No books found. ${currentTab === 'add-section' ? 'Start by adding your first book!' : 'Try a different search term.'}
+          </td>
+        </tr>`;
+        document.getElementById('book-table').innerHTML = html;
+        return;
+      }
+
+      const html = books.map((b, index) => {
         let actions = '';
         if (currentTab === 'update-section')
-          actions = `<button class="action-btn edit" onclick="editBook('${b.key}', '${b.title}', '${b.author}', ${b.price}, ${b.stock_quantity})">✏️ Edit</button>`;
+          actions = `<button onclick="editBook('${b.key}', '${b.title}', '${b.author}', ${b.price}, ${b.stock_quantity})" style="background: var(--success-gradient); color: white; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);">✏️</button>`;
         else if (currentTab === 'delete-section')
-          actions = `<button class="action-btn delete" onclick="deleteBook('${b.key}')">🗑️ Delete</button>`;
+          actions = `<button onclick="deleteBook('${b.key}')" style="background: var(--danger-gradient); color: white; box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);">🗑️</button>`;
         
-        return `<tr>
-          <td><strong>${b.title}</strong></td>
-          <td>${b.author}</td>
-          <td>₹${Number(b.price).toFixed(2)}</td>
-          <td><span style="background: rgba(6, 182, 212, 0.2); padding: 0.3rem 0.8rem; border-radius: 20px; color: #06b6d4;">${b.stock_quantity}</span></td>
+        return `<tr style="animation: fadeInUp 0.4s ease ${index * 0.1}s both;">
+          <td style="font-weight: 600;">${b.title}</td>
+          <td style="color: var(--text-secondary);">${b.author}</td>
+          <td style="color: var(--accent); font-weight: 600;">₹${Number(b.price).toFixed(2)}</td>
+          <td><span style="background: ${b.stock_quantity > 10 ? 'var(--success-gradient)' : 'var(--danger-gradient)'}; padding: 0.5rem 1rem; border-radius: 20px; color: white; font-weight: 600;">${b.stock_quantity}</span></td>
           ${showActions ? `<td class="actions">${actions}</td>` : ''}
         </tr>`;
       }).join('');
@@ -766,14 +1210,14 @@
       
       if (cur > 1) {
         const b = document.createElement('button');
-        b.innerHTML = '← Prev';
-        b.onclick = () => renderPage(cur - 1, q);
+        b.innerHTML = '← Previous'; 
+        b.onclick = () => renderPage(cur - 1, q); 
         container.appendChild(b);
       }
       
       for (let i = 1; i <= total; i++) {
         const b = document.createElement('button');
-        b.innerHTML = i;
+        b.innerText = i; 
         b.disabled = (i === cur);
         b.onclick = () => renderPage(i, q);
         container.appendChild(b);
@@ -781,372 +1225,152 @@
       
       if (cur < total) {
         const b = document.createElement('button');
-        b.innerHTML = 'Next →';
+        b.innerHTML = 'Next →'; 
         b.onclick = () => renderPage(cur + 1, q);
         container.appendChild(b);
       }
     }
 
-    // Form submission
     document.getElementById('book-form').addEventListener('submit', e => {
       e.preventDefault();
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<span class="loading"></span> Processing...';
+      submitBtn.disabled = true;
+
       const book = {
-        title: document.getElementById('title').value,
-        author: document.getElementById('author').value,
-        price: parseFloat(document.getElementById('price').value),
-        stock_quantity: parseInt(document.getElementById('stock_quantity').value)
+        title: title.value.trim(),
+        author: author.value.trim(), 
+        price: parseFloat(price.value),
+        stock_quantity: parseInt(stock_quantity.value)
       };
       
-      if (editingKey) {
-        db.child(editingKey).update(book);
-      } else {
-        db.push(book);
+      // Validation
+      if (!book.title || !book.author || book.price <= 0 || book.stock_quantity < 0) {
+        showNotification('Please fill all fields with valid values', 'error');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
       }
       
-      editingKey = null;
-      document.getElementById('book-form').reset();
-      document.getElementById('cancel-button').classList.add('hidden');
-      showSection('add-section');
+      setTimeout(() => {
+        if (editingKey) {
+          db.child(editingKey).update(book).then(() => {
+            showNotification('Book updated successfully!', 'success');
+          });
+        } else {
+          db.push(book).then(() => {
+            showNotification('Book added successfully!', 'success');
+          });
+        }
+        editingKey = null;
+        bookForm.reset();
+        document.getElementById('cancel-button').classList.add('hidden');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        showSection('dashboard-section');
+        
+        // Update active tab
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-tab="dashboard-section"]').classList.add('active');
+        currentTab = 'dashboard-section';
+      }, 1000);
     });
 
-    // Edit book function
     window.editBook = (key, t, a, p, s) => {
-      document.getElementById('title').value = t;
-      document.getElementById('author').value = a;
-      document.getElementById('price').value = p;
-      document.getElementById('stock_quantity').value = s;
+      title.value = t; author.value = a; price.value = p; stock_quantity.value = s;
       editingKey = key;
-      document.querySelector('#book-form button[type=submit]').textContent = 'Update Book';
+      bookForm.querySelector('button[type=submit]').innerHTML = '🔄 Update Book';
       document.getElementById('cancel-button').classList.remove('hidden');
       showSection('add-section');
+      
+      // Smooth scroll to form
+      document.getElementById('add-section').scrollIntoView({ behavior: 'smooth' });
     };
 
-    // Cancel button
     document.getElementById('cancel-button').onclick = () => {
       editingKey = null;
-      document.getElementById('book-form').reset();
-      document.querySelector('#book-form button[type=submit]').textContent = 'Add Book';
+      bookForm.reset();
+      bookForm.querySelector('button[type=submit]').innerHTML = '✨ Add Book';
       document.getElementById('cancel-button').classList.add('hidden');
       showSection('update-section');
     };
 
-    // Delete book function
     window.deleteBook = async key => {
-      if (confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
-        await db.child(key).remove();
+      if (confirm('🗑️ Are you sure you want to delete this book? This action cannot be undone.')) {
+        try {
+          await db.child(key).remove();
+          showNotification('Book deleted successfully!', 'success');
+        } catch (error) {
+          showNotification('Error deleting book. Please try again.', 'error');
+        }
       }
     };
 
-    // Search functionality
-    document.getElementById('search').oninput = (e) => {
-      renderPage(1, e.target.value);
+    // Enhanced search with debouncing
+    let searchTimeout;
+    search.oninput = (e) => {
+      clearTimeout(searchTimeout);
+      const searchValue = e.target.value;
+      
+      // Visual feedback
+      e.target.style.borderColor = searchValue ? 'var(--accent)' : '';
+      
+      searchTimeout = setTimeout(() => {
+        renderPage(1, searchValue);
+        if (searchValue) {
+          showNotification(`Searching for "${searchValue}"...`, 'info');
+        }
+      }, 300);
+    };
+      }, 300);
     };
 
-    // Tab navigation
     document.querySelectorAll('.tab-button').forEach(btn => {
       btn.onclick = () => {
-        // Remove active class from all buttons
         document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-        
-        // Add active class to clicked button
         btn.classList.add('active');
-        
-        // Update current tab
         currentTab = btn.dataset.tab;
-        
-        // Show the corresponding section
         showSection(currentTab);
-        
-        // Reset form if navigating to add section
         if (currentTab === 'add-section') {
           editingKey = null;
-          document.getElementById('book-form').reset();
-          document.querySelector('#book-form button[type=submit]').textContent = 'Add Book';
+          bookForm.reset();
+          bookForm.querySelector('button[type=submit]').innerHTML = '✨ Add Book';
           document.getElementById('cancel-button').classList.add('hidden');
         }
-        
-        // Re-render the page with current search query
-        renderPage(1, document.getElementById('search').value);
+        renderPage(1, search.value);
       };
     });
 
-    // Show/hide sections
     function showSection(id) {
-      document.querySelectorAll('section').forEach(sec => {
-        if (sec.id === id) {
-          sec.classList.remove('hidden');
-          // Add entrance animation
-          sec.style.animation = 'slideInUp 0.6s ease';
-        } else {
-          sec.classList.add('hidden');
-        }
-      });
-    }
-
-    // Initialize the application
-    function init() {
-      createParticles();
-      
-      // Listen for database changes
-      db.on('value', fetchBooks);
-      
-      // Add some interactive effects
-      addInteractiveEffects();
-    }
-
-    // Add interactive 3D effects
-    function addInteractiveEffects() {
-      // Parallax effect on mouse move
-      document.addEventListener('mousemove', (e) => {
-        const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-        const mouseY = (e.clientY / window.innerHeight) * 2 - 1;
-        
-        // Apply subtle parallax to sidebar
-        const sidebar = document.querySelector('.sidebar');
-        sidebar.style.transform = `translateZ(50px) rotateY(${mouseX * 2}deg) rotateX(${mouseY * 1}deg)`;
-        
-        // Apply parallax to main content
-        const main = document.querySelector('.main');
-        main.style.transform = `perspective(1000px) rotateY(${mouseX * -1}deg) rotateX(${mouseY * 0.5}deg)`;
-      });
-
-      // Add hover effects to cards
-      document.addEventListener('mouseover', (e) => {
-        if (e.target.closest('.dashboard-card')) {
-          const card = e.target.closest('.dashboard-card');
-          card.style.transform = 'translateZ(30px) rotateX(10deg) rotateY(5deg) scale(1.02)';
-        }
-      });
-
-      document.addEventListener('mouseout', (e) => {
-        if (e.target.closest('.dashboard-card')) {
-          const card = e.target.closest('.dashboard-card');
-          card.style.transform = 'translateZ(10px) rotateX(0deg) rotateY(0deg) scale(1)';
-        }
-      });
-
-      // Add floating animation to buttons
-      document.querySelectorAll('.btn').forEach(btn => {
-        btn.addEventListener('mouseenter', () => {
-          btn.style.transform = 'translateY(-5px) translateZ(10px)';
-        });
-        
-        btn.addEventListener('mouseleave', () => {
-          btn.style.transform = 'translateY(0) translateZ(0)';
-        });
-      });
-
-      // Add ripple effect to buttons
-      document.querySelectorAll('.btn, .action-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const ripple = document.createElement('div');
-          const rect = btn.getBoundingClientRect();
-          const size = Math.max(rect.width, rect.height);
-          const x = e.clientX - rect.left - size / 2;
-          const y = e.clientY - rect.top - size / 2;
-          
-          ripple.style.cssText = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            left: ${x}px;
-            top: ${y}px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple 0.6s ease-out;
-            pointer-events: none;
-          `;
-          
-          btn.style.position = 'relative';
-          btn.style.overflow = 'hidden';
-          btn.appendChild(ripple);
-          
-          setTimeout(() => ripple.remove(), 600);
-        });
-      });
-
-      // Add CSS for ripple animation
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes ripple {
-          to {
-            transform: scale(2);
-            opacity: 0;
+      document.querySelectorAll('section')
+        .forEach(sec => {
+          if (sec.id === id) {
+            sec.classList.remove('hidden');
+            sec.style.animation = 'slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1)';
+          } else {
+            sec.classList.add('hidden');
           }
-        }
-        
-        .table tr {
-          transition: all 0.3s ease;
-        }
-        
-        .table tr:hover {
-          transform: translateZ(5px);
-          box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Loading animation */
-        .loading {
-          display: inline-block;
-          width: 20px;
-          height: 20px;
-          border: 3px solid rgba(255, 255, 255, 0.3);
-          border-radius: 50%;
-          border-top-color: #fff;
-          animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        
-        /* Smooth transitions for all interactive elements */
-        * {
-          transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
-        }
-      `;
-      document.head.appendChild(style);
+        });
     }
 
-    // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', init);
-
-    // Add some easter eggs and advanced features
-    let konami = [];
-    const konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up Up Down Down Left Right Left Right B A
-
-    document.addEventListener('keydown', (e) => {
-      konami.push(e.keyCode);
-      if (konami.length > konamiCode.length) {
-        konami.shift();
-      }
-      
-      if (JSON.stringify(konami) === JSON.stringify(konamiCode)) {
-        // Easter egg: Create a shower of book emojis
-        createBookShower();
-        konami = [];
-      }
-      
-      // Quick shortcuts
-      if (e.ctrlKey || e.metaKey) {
-        switch(e.key) {
-          case '1':
-            e.preventDefault();
-            document.querySelector('[data-tab="dashboard-section"]').click();
-            break;
-          case '2':
-            e.preventDefault();
-            document.querySelector('[data-tab="add-section"]').click();
-            break;
-          case '3':
-            e.preventDefault();
-            document.querySelector('[data-tab="update-section"]').click();
-            break;
-          case '4':
-            e.preventDefault();
-            document.querySelector('[data-tab="delete-section"]').click();
-            break;
-          case '/':
-            e.preventDefault();
-            document.getElementById('search').focus();
-            break;
+    // Add CSS animation for table rows
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
-    });
+    `;
+    document.head.appendChild(style);
 
-    // Book shower easter egg
-    function createBookShower() {
-      const emojis = ['📚', '📖', '📕', '📗', '📘', '📙', '📔'];
-      for (let i = 0; i < 50; i++) {
-        setTimeout(() => {
-          const emoji = document.createElement('div');
-          emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-          emoji.style.cssText = `
-            position: fixed;
-            top: -50px;
-            left: ${Math.random() * 100}vw;
-            font-size: ${Math.random() * 30 + 20}px;
-            z-index: 9999;
-            pointer-events: none;
-            animation: bookFall 3s linear forwards;
-          `;
-          document.body.appendChild(emoji);
-          
-          setTimeout(() => emoji.remove(), 3000);
-        }, i * 100);
-      }
-      
-      // Add CSS for book fall animation
-      if (!document.querySelector('#bookfall-style')) {
-        const style = document.createElement('style');
-        style.id = 'bookfall-style';
-        style.textContent = `
-          @keyframes bookFall {
-            to {
-              transform: translateY(calc(100vh + 100px)) rotate(360deg);
-              opacity: 0;
-            }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-    }
-
-    // Add notification system
-    function showNotification(message, type = 'success') {
-      const notification = document.createElement('div');
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 1rem 2rem;
-        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
-        color: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-      `;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => notification.style.transform = 'translateX(0)', 100);
-      setTimeout(() => notification.style.transform = 'translateX(400px)', 3000);
-      setTimeout(() => notification.remove(), 3400);
-    }
-
-    // Override Firebase operations to show notifications
-    const originalUpdate = db.child.bind(db);
-    const originalPush = db.push.bind(db);
-    const originalRemove = db.child.bind(db);
-
-    // Show notifications for database operations
-    db.on('child_added', () => showNotification('Book added successfully! 📚'));
-    db.on('child_changed', () => showNotification('Book updated successfully! ✏️'));
-    db.on('child_removed', () => showNotification('Book deleted successfully! 🗑️'));
-
+    db.on('value', fetchBooks);
   </script>
 </body>
 </html>
