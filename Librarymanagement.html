@@ -577,10 +577,31 @@
       <div id="total-books" class="stats"></div>
 
       <section id="dashboard-section" class="content-section">
-        <h2 style="margin-bottom: 2rem; font-size: 1.8rem; text-align: center;">📚 Welcome to BookVault</h2>
-        <p style="color: rgba(255, 255, 255, 0.8); text-align: center; font-size: 1.1rem; line-height: 1.6;">
-          Your complete book inventory management system. Use the navigation menu to add, update, or delete books from your collection.
-        </p>
+        <div class="dashboard-grid">
+          <div class="dashboard-card">
+            <div class="card-icon">📊</div>
+            <div class="card-title">Analytics Dashboard</div>
+            <div class="card-description">
+              Monitor your bookstore's performance with real-time analytics and insights. Track sales, inventory levels, and popular titles.
+            </div>
+          </div>
+          
+          <div class="dashboard-card">
+            <div class="card-icon">📚</div>
+            <div class="card-title">Inventory Management</div>
+            <div class="card-description">
+              Efficiently manage your book collection with advanced search, filtering, and categorization features.
+            </div>
+          </div>
+          
+          <div class="dashboard-card">
+            <div class="card-icon">🎯</div>
+            <div class="card-title">Smart Recommendations</div>
+            <div class="card-description">
+              Get AI-powered insights on which books to stock based on trends and customer preferences.
+            </div>
+          </div>
+        </div>
       </section>
 
       <section id="add-section" class="content-section hidden">
@@ -823,4 +844,309 @@
 
     // Tab navigation
     document.querySelectorAll('.tab-button').forEach(btn => {
-      btn.
+      btn.onclick = () => {
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        
+        // Add active class to clicked button
+        btn.classList.add('active');
+        
+        // Update current tab
+        currentTab = btn.dataset.tab;
+        
+        // Show the corresponding section
+        showSection(currentTab);
+        
+        // Reset form if navigating to add section
+        if (currentTab === 'add-section') {
+          editingKey = null;
+          document.getElementById('book-form').reset();
+          document.querySelector('#book-form button[type=submit]').textContent = 'Add Book';
+          document.getElementById('cancel-button').classList.add('hidden');
+        }
+        
+        // Re-render the page with current search query
+        renderPage(1, document.getElementById('search').value);
+      };
+    });
+
+    // Show/hide sections
+    function showSection(id) {
+      document.querySelectorAll('section').forEach(sec => {
+        if (sec.id === id) {
+          sec.classList.remove('hidden');
+          // Add entrance animation
+          sec.style.animation = 'slideInUp 0.6s ease';
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
+    }
+
+    // Initialize the application
+    function init() {
+      createParticles();
+      
+      // Listen for database changes
+      db.on('value', fetchBooks);
+      
+      // Add some interactive effects
+      addInteractiveEffects();
+    }
+
+    // Add interactive 3D effects
+    function addInteractiveEffects() {
+      // Parallax effect on mouse move
+      document.addEventListener('mousemove', (e) => {
+        const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+        
+        // Apply subtle parallax to sidebar
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.style.transform = `translateZ(50px) rotateY(${mouseX * 2}deg) rotateX(${mouseY * 1}deg)`;
+        
+        // Apply parallax to main content
+        const main = document.querySelector('.main');
+        main.style.transform = `perspective(1000px) rotateY(${mouseX * -1}deg) rotateX(${mouseY * 0.5}deg)`;
+      });
+
+      // Add hover effects to cards
+      document.addEventListener('mouseover', (e) => {
+        if (e.target.closest('.dashboard-card')) {
+          const card = e.target.closest('.dashboard-card');
+          card.style.transform = 'translateZ(30px) rotateX(10deg) rotateY(5deg) scale(1.02)';
+        }
+      });
+
+      document.addEventListener('mouseout', (e) => {
+        if (e.target.closest('.dashboard-card')) {
+          const card = e.target.closest('.dashboard-card');
+          card.style.transform = 'translateZ(10px) rotateX(0deg) rotateY(0deg) scale(1)';
+        }
+      });
+
+      // Add floating animation to buttons
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+          btn.style.transform = 'translateY(-5px) translateZ(10px)';
+        });
+        
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform = 'translateY(0) translateZ(0)';
+        });
+      });
+
+      // Add ripple effect to buttons
+      document.querySelectorAll('.btn, .action-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const ripple = document.createElement('div');
+          const rect = btn.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+          
+          ripple.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            left: ${x}px;
+            top: ${y}px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+          `;
+          
+          btn.style.position = 'relative';
+          btn.style.overflow = 'hidden';
+          btn.appendChild(ripple);
+          
+          setTimeout(() => ripple.remove(), 600);
+        });
+      });
+
+      // Add CSS for ripple animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes ripple {
+          to {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        
+        .table tr {
+          transition: all 0.3s ease;
+        }
+        
+        .table tr:hover {
+          transform: translateZ(5px);
+          box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Loading animation */
+        .loading {
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          border: 3px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top-color: #fff;
+          animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        
+        /* Smooth transitions for all interactive elements */
+        * {
+          transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', init);
+
+    // Add some easter eggs and advanced features
+    let konami = [];
+    const konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up Up Down Down Left Right Left Right B A
+
+    document.addEventListener('keydown', (e) => {
+      konami.push(e.keyCode);
+      if (konami.length > konamiCode.length) {
+        konami.shift();
+      }
+      
+      if (JSON.stringify(konami) === JSON.stringify(konamiCode)) {
+        // Easter egg: Create a shower of book emojis
+        createBookShower();
+        konami = [];
+      }
+      
+      // Quick shortcuts
+      if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+          case '1':
+            e.preventDefault();
+            document.querySelector('[data-tab="dashboard-section"]').click();
+            break;
+          case '2':
+            e.preventDefault();
+            document.querySelector('[data-tab="add-section"]').click();
+            break;
+          case '3':
+            e.preventDefault();
+            document.querySelector('[data-tab="update-section"]').click();
+            break;
+          case '4':
+            e.preventDefault();
+            document.querySelector('[data-tab="delete-section"]').click();
+            break;
+          case '/':
+            e.preventDefault();
+            document.getElementById('search').focus();
+            break;
+        }
+      }
+    });
+
+    // Book shower easter egg
+    function createBookShower() {
+      const emojis = ['📚', '📖', '📕', '📗', '📘', '📙', '📔'];
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const emoji = document.createElement('div');
+          emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+          emoji.style.cssText = `
+            position: fixed;
+            top: -50px;
+            left: ${Math.random() * 100}vw;
+            font-size: ${Math.random() * 30 + 20}px;
+            z-index: 9999;
+            pointer-events: none;
+            animation: bookFall 3s linear forwards;
+          `;
+          document.body.appendChild(emoji);
+          
+          setTimeout(() => emoji.remove(), 3000);
+        }, i * 100);
+      }
+      
+      // Add CSS for book fall animation
+      if (!document.querySelector('#bookfall-style')) {
+        const style = document.createElement('style');
+        style.id = 'bookfall-style';
+        style.textContent = `
+          @keyframes bookFall {
+            to {
+              transform: translateY(calc(100vh + 100px)) rotate(360deg);
+              opacity: 0;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+
+    // Add notification system
+    function showNotification(message, type = 'success') {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 2rem;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
+        color: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+      setTimeout(() => notification.style.transform = 'translateX(400px)', 3000);
+      setTimeout(() => notification.remove(), 3400);
+    }
+
+    // Override Firebase operations to show notifications
+    const originalUpdate = db.child.bind(db);
+    const originalPush = db.push.bind(db);
+    const originalRemove = db.child.bind(db);
+
+    // Show notifications for database operations
+    db.on('child_added', () => showNotification('Book added successfully! 📚'));
+    db.on('child_changed', () => showNotification('Book updated successfully! ✏️'));
+    db.on('child_removed', () => showNotification('Book deleted successfully! 🗑️'));
+
+  </script>
+</body>
+</html>
