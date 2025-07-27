@@ -17,7 +17,7 @@
 - Google Fonts & Emojis for enhanced visuals
 
 🌐 Live Demo
-🔗 https://primordial579.github.io/Libmgmt/Librarymanagement.html
+🔗 https://primordial579.github.io/Library-management/Library-management.html
 
 🧠 Keyboard Shortcuts
 Ctrl + 1 → Dashboard
