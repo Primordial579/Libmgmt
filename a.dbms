@@ -1,0 +1,46 @@
+create database if not exists bookstore;
+USE bookstore;
+
+create table if not exists books (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255),
+  author VARCHAR(255),
+  price DECIMAL(10,2),
+  stock_quantity INT
+);
+
+desc books;
+
+INSERT INTO books (title, author, price, stock_quantity) VALUES
+('The Silent River', 'Arun Kumar', 250.00, 15),
+('Midnight Whispers', 'Ravi Shankar', 180.50, 20),
+('Echoes of Eternity', 'Sita Patel', 299.99, 12),
+('Mystic Dreams', 'Kiran Desai', 150.75, 25),
+('Winds of Change', 'Manoj Gupta', 220.40, 18),
+('The Lost Kingdom', 'Priya Singh', 340.00, 10),
+('Journey Beyond', 'Vikram Mehta', 199.99, 30),
+('Hidden Realms', 'Anita Rao', 175.50, 14),
+('Voices of the Past', 'Ramesh Kumar', 210.00, 16),
+('Shadows of Time', 'Deepa Nair', 260.00, 22),
+('A Whisper in the Wind', 'Sanjay Patel', 185.00, 28),
+('The Unseen World', 'Lakshmi Iyer', 300.00, 19),
+('Paths of Destiny', 'Rahul Verma', 230.00, 12),
+('The Eternal Quest', 'Neha Sharma', 275.00, 11),
+('Beyond the Horizon', 'Vijay Reddy', 240.00, 20),
+('Dreams of Tomorrow', 'Anjali Gupta', 199.00, 18),
+('Mysteries Unveiled', 'Suresh Menon', 320.00, 13),
+('The Last Frontier', 'Pooja Chatterjee', 410.00, 9),
+('The Forgotten Tale', 'Vikram Desai', 225.50, 17),
+('Chronicles of Hope', 'Ishaan Joshi', 260.75, 21),
+('Legends of the Past', 'Amitabh Sen', 290.00, 14),
+('The Golden Path', 'Meera Krishnan', 310.00, 16),
+('Waves of Silence', 'Subhash Chand', 190.00, 25),
+('The Art of Living', 'Kavita Rao', 350.00, 10),
+('Beyond the Stars', 'Arjun Kapoor', 400.00, 8),
+('The Lost Memoir', 'Divya Patel', 215.00, 15),
+('Whispers of the Past', 'Suman Roy', 265.00, 19),
+('Mirrors of Time', 'Rohan Gupta', 230.50, 17),
+('The Final Chapter', 'Nisha Verma', 245.00, 12),
+('Reverie', 'Rajesh Nair', 275.50, 20);
+
+select * from books;
