@@ -1,6 +1,6 @@
 # 📚 BookVault – Firebase Inventory Dashboard
 
-**BookVault ** is a futuristic, interactive bookstore inventory dashboard built using modern HTML, CSS, and Firebase Realtime Database. It allows users to add, edit, delete, and search books in real-time, with animated visuals and responsive 3D design.
+**BookVault ** is a futuristic, interactive bookstore inventory dashboard built using modern HTML, CSS, and Firebase Realtime Database. It allows users to add, edit, delete, and search books in real-time, with animated visuals and responsive design.
 
 ## 🔥 Features
 - 🔍 Live book search
